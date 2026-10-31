@@ -517,6 +517,12 @@ async def creds_action(
                 return JSONResponse(content={"message": f"已删除凭证 {email}"})
             raise HTTPException(status_code=500, detail="删除凭证失败")
 
+        elif action == "clear_cooldown":
+            success = await database.clear_all_model_cooldowns(email)
+            if success:
+                return JSONResponse(content={"message": f"已清空凭证冷却 {email}"})
+            raise HTTPException(status_code=500, detail="清空凭证冷却失败，可能凭证不存在")
+
         else:
             raise HTTPException(status_code=400, detail="无效的操作类型")
 
@@ -558,6 +564,11 @@ async def creds_batch_action(
                         success_count += 1
                     else:
                         errors.append(f"{email}: 删除失败")
+                elif action == "clear_cooldown":
+                    if await database.clear_all_model_cooldowns(email):
+                        success_count += 1
+                    else:
+                        errors.append(f"{email}: 清除冷却失败")
                         continue
                 else:
                     errors.append(f"{email}: 无效的操作类型")
